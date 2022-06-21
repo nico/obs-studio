@@ -98,7 +98,11 @@ check_sha() {
     FILE="${1}"
     EXPECTED_HASH="${2}"
 
-    SEEN_HASH="$(sha256sum "${FILE}" | cut -d " " -f 1)"
+    if [ "$(uname)" = "Darwin" ]; then
+        SEEN_HASH="$(shasum -a 256 "${FILE}" | cut -d " " -f 1)"
+    else
+        SEEN_HASH="$(sha256sum "${FILE}" | cut -d " " -f 1)"
+    fi
     test "${EXPECTED_HASH}" = "${SEEN_HASH}"
 }
 
