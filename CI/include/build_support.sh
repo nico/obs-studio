@@ -89,6 +89,19 @@ check_ccache() {
     fi
 }
 
+check_sha() {
+    if [ $# -ne 2 ]; then
+        error "Usage: check_sha FILE EXPECTED_HASH"
+        return 1
+    fi
+
+    FILE="${1}"
+    EXPECTED_HASH="${2}"
+
+    SEEN_HASH="$(sha256sum "${FILE}" | cut -d " " -f 1)"
+    test "${EXPECTED_HASH}" = "${SEEN_HASH}"
+}
+
 safe_fetch() {
     if [ $# -lt 2 ]; then
         error "Usage: safe_fetch URL HASH"
@@ -114,7 +127,7 @@ safe_fetch() {
         ${CURLCMD} "${DOWNLOAD_URL}"
     fi
 
-    if [ "${DOWNLOAD_HASH}" = "$(sha256sum "${DOWNLOAD_FILE}" | cut -d " " -f 1)" ]; then
+    if check_sha "${DOWNLOAD_FILE}" "${DOWNLOAD_HASH}"; then
         info "${DOWNLOAD_FILE} downloaded successfully and passed hash check"
         return 0
     else
@@ -140,7 +153,7 @@ check_and_fetch() {
     DOWNLOAD_HASH="${2}"
     DOWNLOAD_FILE="$(basename "${DOWNLOAD_URL}")"
 
-    if [ -f "${DOWNLOAD_FILE}" ] && [ "${DOWNLOAD_HASH}" = "$(sha256sum "${DOWNLOAD_FILE}" | cut -d " " -f 1)" ]; then
+    if [ -f "${DOWNLOAD_FILE}" ] && check_sha "${DOWNLOAD_FILE}" "${DOWNLOAD_HASH}"; then
         info "${DOWNLOAD_FILE} exists and passed hash check"
         return 0
     else
@@ -201,7 +214,7 @@ apply_patch() {
 
     if [ "${COMMIT_URL:0:5}" = "https" ]; then
         ${CURLCMD:-curl} "${COMMIT_URL}"
-        if [ "${COMMIT_HASH}" = "$(sha256sum ${PATCH_FILE} | cut -d " " -f 1)" ]; then
+        if check_sha "${PATCH_FILE}" "${COMMIT_HASH}"; then
             info "${PATCH_FILE} downloaded successfully and passed hash check"
         else
             error "${PATCH_FILE} downloaded successfully and failed hash check"
