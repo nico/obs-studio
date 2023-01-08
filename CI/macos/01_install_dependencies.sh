@@ -131,7 +131,8 @@ install_dependencies() {
         "sparkle ${SPARKLE_VERSION:-${CI_SPARKLE_VERSION}} ${SPARKLE_HASH:-${CI_SPARKLE_HASH}}"
     )
 
-    install_homebrew_deps
+    #install_homebrew_deps
+    check_curl
 
     for DEPENDENCY in "${BUILD_DEPS[@]}"; do
         set -- ${DEPENDENCY}
